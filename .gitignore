@@ -1,11 +1,77 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Caches & Environments
+*.ipynb
+.ipynb_checkpoints/
+.pytest_cache/
+.env
+.venv/
+venv/
+env/
+ENV/
+# Personal & Internal Documentation / Scripts
+HUONG_DAN_CHAY_DU_AN.md
+LICH_SU_CHINH_SUA.md
+*_clean.txt
+push_to_github.bat
+push_to_github.ps1
+
+# Large binary files & weights
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.safetensors
+*.onnx
+
+# Compressed archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+_tmp_*
+
+# Pretrained weight directories (keep download script)
+pretrained/progan/
+pretrained/sd-v1_4/
+!pretrained/download.sh
+
+# Training checkpoints & outputs
+trained_models/
 ckpt*/
-data/test/AIGCDetectionBenchMark/test
-data/test/Co-Spy-Bench/real_image_examples
-data/test/Co-Spy-Bench/synthetic
-data/train/progan/train
-data/train/progan/val
-data/train/sd-v1_4/mscoco2017
-data/train/sd-v1_4/stable-diffusion-v1-4
-pretrained/progan
-pretrained/sd-v1_4
+weights/
+runs/
+wandb/
+logs/
+*.log
+
+# Evaluation outputs & test caches
+test_results/
+drive_out/
+test_results*.json
+test_checkpoint*.json
+test_results*.csv
+model_metadata.json
+
+# Datasets & raw images
+Dataset/
+dataset/
+data/train/progan/train/
+data/train/progan/val/
+data/train/sd-v1_4/mscoco2017/
+data/train/sd-v1_4/stable-diffusion-v1-4/
+data/test/AIGCDetectionBenchMark/test/
+data/test/Co-Spy-Bench/real_image_examples/
+data/test/Co-Spy-Bench/synthetic/
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,111 @@
+# ==============================================================================
+# CO-SPY Pre-Registration Configuration (configs/prereg.yaml)
+# Protocol: Anti-Overfitting Pre-Registration for Preprocessing Refinements
+# ==============================================================================
+
+experiment:
+  name: "cospy_preprocessing_refinement"
+  head_commit: "4be0ba51fc6c96a06d5d3b12e36439d5d1507e16"
+  date: "2026-11-09"
+  random_seed: 42
+  bootstrap_iterations: 1000
+  confidence_level: 0.95
+
+# ------------------------------------------------------------------------------
+# Data Partitioning (Strict Isolation between Dev and Locked Test)
+# ------------------------------------------------------------------------------
+data_split:
+  # Dev Set: Used for A/B testing and configuration selection
+  dev:
+    real_sources:
+      - "cc3m"
+      - "textcaps"
+    fake_generators:
+      - "CompVis@stable-diffusion-v1-4"              # Seen generator
+      - "stabilityai@stable-diffusion-xl-base-1.0"   # Unseen SDXL
+      - "PixArt-alpha@PixArt-XL-2-512x512"           # Transformer-based 512
+      - "playgroundai@playground-v2-1024px-aesthetic"# High-res 1024
+      - "black-forest-labs@FLUX.1-schnell"          # Rectified flow / DiT
+      - "segmind@tiny-sd"                            # Distilled small architecture
+
+  # Locked Test Set: Opened ONCE ONLY after prereg.yaml is locked by SHA-256
+  locked_test:
+    real_sources:
+      - "flickr"
+      - "sbu"
+    fake_generators:
+      - "CompVis@ldm-text2im-large-256"
+      - "runwayml@stable-diffusion-v1-5"
+      - "segmind@SSD-1B"
+      - "segmind@SegMoE-SD-4x2-v0"
+      - "segmind@small-sd"
+      - "stabilityai@stable-diffusion-2-1"
+      - "stabilityai@stable-diffusion-3-medium-diffusers"
+      - "stabilityai@sdxl-turbo"
+      - "stabilityai@stable-diffusion-2"
+      - "playgroundai@playground-v2.5-1024px-aesthetic"
+      - "playgroundai@playground-v2-512px-base"
+      - "playgroundai@playground-v2-256px-base"
+      - "PixArt-alpha@PixArt-XL-2-1024-MS"
+      - "latent-consistency@lcm-lora-sdxl"
+      - "latent-consistency@lcm-lora-sdv1-5"
+      - "black-forest-labs@FLUX.1-dev"
+    in_the_wild:
+      enabled: true
+      cleaned_manifest: "data/in_the_wild/urls/flux_clean.txt"
+      report_metric: "recall_only"
+
+  # Excluded / Isolated from Generalization Claims (Issue L1, L2)
+  isolated_leakage_set:
+    sources:
+      - "mscoco"
+    reason: "MSCOCO test column overlaps with mscoco2017/val2017 used in training and model selection."
+
+# ------------------------------------------------------------------------------
+# Acceptance Gates (Conditions for Adopting branch_native Route)
+# ------------------------------------------------------------------------------
+acceptance_gates:
+  gate_1_original_no_decline:
+    metric_keys: ["ap_fusion", "auc_roc"]
+    tolerance: 0.0001
+  gate_2_fpr_non_inferiority:
+    threshold: 0.5
+    delta_fpr_max_absolute: 0.005  # +0.5% absolute FPR margin on real images
+    bootstrap_ci_upper_bound_check: true
+  gate_3_consistent_improvement:
+    min_jpeg_conditions_improved: 2
+    min_generators_or_real_sources_improved: 3
+  gate_4_split_half_consistency:
+    required: true
+
+# ------------------------------------------------------------------------------
+# Preprocessing Routes
+# ------------------------------------------------------------------------------
+routes:
+  legacy:
+    description: "Common fusion_model.test_transform (baseline)"
+  branch_native:
+    description: "Independent sem.test_transform and art.test_transform (Method C)"
+  multiview_9:
+    description: "9 deterministic crops with offsets in {0, 16, 32} on Resize(256) (Method B)"
+    views: 9
+
+# ------------------------------------------------------------------------------
+# Degradation Evaluation Grid
+# ------------------------------------------------------------------------------
+degradations:
+  - "original"
+  - "jpeg_q95"
+  - "jpeg_q85"
+  - "jpeg_q75"
+  - "jpeg_q70"
+  - "jpeg_q60"
+  - "jpeg_q40"
+  - "double_jpeg_aligned"
+  - "double_jpeg_shifted"
+  - "resize_jpeg"
+  - "jpeg_resize"
+  - "cross_encoder_mozjpeg"
+  - "cross_format_webp_q75"
+  - "cross_format_webp_q90"
+
