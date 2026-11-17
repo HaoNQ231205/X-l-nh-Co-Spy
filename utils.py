@@ -176,6 +176,34 @@ class LabelSmoothingBCEWithLogits(torch.nn.Module):
         return loss
 
 
+class FocalBCEWithLogitsLoss(torch.nn.Module):
+    """
+    Focal Loss with Logits for Binary Classification.
+    FL(p_t) = -alpha_t * (1 - p_t)^gamma * log(p_t)
+    where p_t is the model's estimated probability for the ground truth class.
+    """
+    def __init__(self, gamma=2.0, alpha=0.25, reduction='mean'):
+        super(FocalBCEWithLogitsLoss, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        self.reduction = reduction
+
+    def forward(self, logits, targets):
+        targets = targets.float()
+        p = torch.sigmoid(logits)
+        bce_loss = torch.nn.functional.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+        p_t = p * targets + (1 - p) * (1 - targets)
+        alpha_t = self.alpha * targets + (1 - self.alpha) * (1 - targets)
+        loss = alpha_t * ((1 - p_t) ** self.gamma) * bce_loss
+
+        if self.reduction == 'mean':
+            return loss.mean()
+        elif self.reduction == 'sum':
+            return loss.sum()
+        return loss
+
+
+
 def evaluate(y_pred, y_true):
     ap = average_precision_score(y_true, y_pred)
     accuracy = ((np.array(y_pred) > 0.5) == y_true).mean()

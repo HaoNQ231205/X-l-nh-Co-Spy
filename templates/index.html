@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CO-SPY Forensics | AI Synthetic Image Detection & XAI</title>
+    <meta name="description" content="State-of-the-art AI generated image detection using semantic features and pixel artifacts with interactive Grad-CAM explainability.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Background glow decorations -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand-logo">
+                <div class="logo-icon">
+                    <i data-lucide="shield-alert"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>CO-SPY <span class="brand-accent">Forensics</span></h1>
+                    <p class="brand-sub">CVPR 2025 • Semantic & Pixel Multimodal AI Detector</p>
+                </div>
+            </div>
+            
+            <div class="header-badges">
+                <span class="badge badge-tech"><i data-lucide="cpu"></i> SigLIP ViT-SO400M</span>
+                <span class="badge badge-tech"><i data-lucide="layers"></i> SD-v1.4 VAE</span>
+                <span class="badge badge-highlight"><i data-lucide="sparkles"></i> Cross-Attention XAI</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="main-container">
+        <!-- Top Toolbar / Quick Samples -->
+        <section class="samples-section">
+            <div class="section-title-row">
+                <span class="section-badge"><i data-lucide="zap"></i> Quick Test</span>
+                <h2>Try Sample Images</h2>
+                <span class="samples-hint">Click any sample below to scan instantly</span>
+            </div>
+            <div class="samples-grid" id="samplesGrid">
+                <!-- Dynamically populated from /api/samples -->
+                <div class="sample-skeleton"></div>
+                <div class="sample-skeleton"></div>
+                <div class="sample-skeleton"></div>
+            </div>
+        </section>
+
+        <!-- Analysis Grid: Upload vs Results -->
+        <div class="analysis-grid">
+            <!-- Left Column: Image Uploader -->
+            <section class="panel-card upload-card" id="uploadSection">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i data-lucide="upload-cloud" class="title-icon"></i>
+                        <h3>Input Image</h3>
+                    </div>
+                    <span class="card-tag">JPG, PNG, WEBP</span>
+                </div>
+
+                <!-- Dropzone -->
+                <div class="dropzone" id="dropzone">
+                    <input type="file" id="fileInput" accept="image/*" class="file-input-hidden">
+                    <div class="dropzone-content" id="dropzoneEmpty">
+                        <div class="upload-icon-wrapper">
+                            <i data-lucide="image-plus"></i>
+                        </div>
+                        <h4>Drag & drop an image here</h4>
+                        <p>or <button type="button" class="btn-browse" id="btnBrowse">Browse File</button></p>
+                        <div class="dropzone-footer">
+                            <span><i data-lucide="clipboard"></i> Paste from clipboard (Ctrl+V)</span>
+                        </div>
+                    </div>
+
+                    <!-- Preview Container -->
+                    <div class="dropzone-preview hidden" id="dropzonePreview">
+                        <img id="previewImage" src="" alt="Selected image">
+                        <button type="button" class="btn-clear" id="btnClear" title="Clear image">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="upload-actions">
+                    <button type="button" class="btn-primary" id="btnScan" disabled>
+                        <i data-lucide="scan"></i>
+                        <span>Inspect with CO-SPY</span>
+                    </button>
+                </div>
+
+                <!-- Feature Highlights -->
+                <div class="feature-bullets">
+                    <div class="bullet-item">
+                        <i data-lucide="check-circle-2"></i>
+                        <span>Dual-branch fusion (Semantics + VAE reconstruction residuals)</span>
+                    </div>
+                    <div class="bullet-item">
+                        <i data-lucide="check-circle-2"></i>
+                        <span>Multi-Head Cross-Attention with Adaptive Gating</span>
+                    </div>
+                    <div class="bullet-item">
+                        <i data-lucide="check-circle-2"></i>
+                        <span>Grad-CAM pixel-level heatmap localization</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Results & Grad-CAM XAI -->
+            <section class="panel-card results-card" id="resultsSection">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i data-lucide="activity" class="title-icon"></i>
+                        <h3>Forensic Analysis & XAI</h3>
+                    </div>
+                    <div class="view-toggles" id="viewToggles">
+                        <button type="button" class="toggle-btn active" data-view="slider" id="btnViewSlider" title="Interactive Slider">
+                            <i data-lucide="columns-2"></i> Slider
+                        </button>
+                        <button type="button" class="toggle-btn" data-view="sideBySide" id="btnViewSide" title="Side-by-Side">
+                            <i data-lucide="grid-2x2"></i> Side-by-Side
+                        </button>
+                        <button type="button" class="toggle-btn" data-view="heatmap" id="btnViewHeatmap" title="Pure Heatmap">
+                            <i data-lucide="flame"></i> Heatmap
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Empty state placeholder -->
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon-pulse">
+                        <i data-lucide="shield-search"></i>
+                    </div>
+                    <h4>No Inspection Data</h4>
+                    <p>Select or upload an image on the left, then click <strong>"Inspect with CO-SPY"</strong> to view real-time forensic verdict and Grad-CAM heatmap.</p>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state hidden" id="loadingState">
+                    <div class="scanner-laser"></div>
+                    <div class="spinner-pulse"></div>
+                    <h4>Deep Feature Extraction in Progress...</h4>
+                    <p>Executing SigLIP SO400M & VAE reconstruction pass...</p>
+                </div>
+
+                <!-- Results Content -->
+                <div class="results-content hidden" id="resultsContent">
+                    <!-- Verdict & Score Banner -->
+                    <div class="verdict-banner" id="verdictBanner">
+                        <div class="verdict-left">
+                            <div class="verdict-icon-box" id="verdictIconBox">
+                                <i data-lucide="alert-triangle" id="verdictIcon"></i>
+                            </div>
+                            <div class="verdict-text-group">
+                                <span class="verdict-sub">FINAL VERDICT</span>
+                                <h2 class="verdict-title" id="verdictTitle">AI-GENERATED</h2>
+                                <p class="verdict-caption" id="verdictCaption">Confidence probability: 84.07%</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Confidence Gauge Meter -->
+                        <div class="gauge-container">
+                            <svg class="gauge-svg" viewBox="0 0 100 100">
+                                <circle class="gauge-bg" cx="50" cy="50" r="42" />
+                                <circle class="gauge-fill" id="gaugeFill" cx="50" cy="50" r="42" />
+                            </svg>
+                            <div class="gauge-text">
+                                <span class="gauge-number" id="gaugeNumber">84.1</span>
+                                <span class="gauge-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dual-Expert Ensemble Indicators -->
+                    <div class="ensemble-row" id="ensembleRow" style="display: flex; gap: 12px; margin-bottom: 14px;">
+                        <div class="ensemble-badge" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: var(--text-dim);"><i data-lucide="cpu" style="width: 14px; height: 14px; vertical-align: middle;"></i> GAN Expert (ProGAN)</span>
+                            <strong id="scoreProgan" style="font-size: 13px; color: #a5b4fc;">0.0%</strong>
+                        </div>
+                        <div class="ensemble-badge" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: var(--text-dim);"><i data-lucide="layers" style="width: 14px; height: 14px; vertical-align: middle;"></i> Diffusion Expert (SD-v1.4)</span>
+                            <strong id="scoreSD" style="font-size: 13px; color: #38bdf8;">0.0%</strong>
+                        </div>
+                    </div>
+
+                    <!-- Dual-Branch Contribution Metrics -->
+                    <div class="branch-metrics-grid">
+                        <div class="branch-card">
+                            <div class="branch-header">
+                                <span class="branch-name"><i data-lucide="eye"></i> Semantic Branch</span>
+                                <span class="branch-val" id="semVal">86.2%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill sem-fill" id="semBar" style="width: 86.2%"></div>
+                            </div>
+                            <span class="branch-desc">SigLIP ViT-SO400M high-level unnaturalness</span>
+                        </div>
+
+                        <div class="branch-card">
+                            <div class="branch-header">
+                                <span class="branch-name"><i data-lucide="fingerprint"></i> Artifact Branch</span>
+                                <span class="branch-val" id="artVal">79.5%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill art-fill" id="artBar" style="width: 79.5%"></div>
+                            </div>
+                            <span class="branch-desc">VAE Reconstruction error & high-frequency noise</span>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Viewer Container -->
+                    <div class="viewer-wrapper">
+                        <!-- Mode 1: Interactive Comparison Slider -->
+                        <div class="comparison-slider-container" id="sliderView">
+                            <div class="image-before">
+                                <img id="imgBefore" src="" alt="Original Image">
+                                <span class="slider-badge badge-left">Original Image</span>
+                            </div>
+                            <div class="image-after" id="imageAfter">
+                                <img id="imgAfter" src="" alt="Grad-CAM Overlay">
+                                <span class="slider-badge badge-right">Grad-CAM Heatmap</span>
+                            </div>
+                            <!-- Draggable divider handle -->
+                            <div class="slider-divider" id="sliderDivider">
+                                <div class="slider-handle">
+                                    <i data-lucide="chevrons-left-right"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mode 2: Side by Side View -->
+                        <div class="side-by-side-container hidden" id="sideView">
+                            <div class="side-box">
+                                <span class="view-label">Original Image</span>
+                                <img id="sideImgOrig" src="" alt="Original Image">
+                            </div>
+                            <div class="side-box">
+                                <span class="view-label">Grad-CAM Overlay</span>
+                                <img id="sideImgOverlay" src="" alt="Grad-CAM Overlay">
+                            </div>
+                        </div>
+
+                        <!-- Mode 3: Pure Heatmap View -->
+                        <div class="heatmap-only-container hidden" id="heatmapView">
+                            <span class="view-label">Pure Grad-CAM Activation Map (Jet Colormap)</span>
+                            <img id="pureHeatmapImg" src="" alt="Pure Heatmap">
+                        </div>
+
+                        <!-- Opacity Slider -->
+                        <div class="opacity-bar">
+                            <label for="opacityRange"><i data-lucide="sliders"></i> Heatmap Intensity:</label>
+                            <input type="range" id="opacityRange" min="0.1" max="1.0" step="0.05" value="0.5">
+                            <span id="opacityVal">50%</span>
+                        </div>
+                    </div>
+
+                    <!-- Meta Information Footer -->
+                    <div class="result-meta-row">
+                        <span class="meta-item"><i data-lucide="clock"></i> Latency: <strong id="metaTime">320ms</strong></span>
+                        <span class="meta-item"><i data-lucide="maximize"></i> Dimensions: <strong id="metaSize">1024x768</strong></span>
+                        <span class="meta-item"><i data-lucide="cpu"></i> Device: <strong id="metaDevice">CUDA / CPU</strong></span>
+                        <a href="#" class="btn-download" id="btnDownload" download="cospay_gradcam.jpg">
+                            <i data-lucide="download"></i> Download Report
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>© 2025-2026 CO-SPY: Combining Semantic and Pixel Features to Detect Synthetic Images by AI (CVPR'25).</p>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

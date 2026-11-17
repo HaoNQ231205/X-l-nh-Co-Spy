@@ -273,14 +273,25 @@ python main.py --gpu 1 --phase train --mode end2end --train_dataset progan --epo
 ```
 The trained model will be saved to `ckpt/<train_dataset>/end2end`.
 
+Training shuffles the dataset and processes it in chunks of up to 10,000 images. The GPU still processes one mini-batch at a time; the default batch size is 8 and can be reduced with `--batch_size 4` or `--batch_size 2` if GPU memory is insufficient. A resumable `last_checkpoint.pth` is saved every 100 batches and at chunk/epoch boundaries. Training automatically resumes from that checkpoint when the same checkpoint directory is used again. Remove only `last_checkpoint.pth` from the run's output directory to start that run from scratch.
+
+For a Colab session, mount Google Drive and point `--ckpt` to a Drive directory so the checkpoint survives a runtime reset:
+```python
+from google.colab import drive
+drive.mount("/content/drive")
+```
+```bash
+python main.py --gpu 0 --phase train --mode end2end --train_dataset sd-v1_4 --epochs 10 --batch_size 8 --ckpt /content/drive/MyDrive/Co-Spy/ckpt
+```
+
 *The end-to-end training may not yield optimal performance due to the conflicting nature of semantic and artifact features. We recommend the following best practice for training.*
 ```bash
 # Train an optimal CO-SPY detector using the best practice script on DRCT-2M
-bash train.sh --gpu 2 --dataset sd-v1_4
+bash train.sh --gpu 2 --dataset sd-v1_4 --ckpt /content/drive/MyDrive/Co-Spy/ckpt
 # Train an optimal CO-SPY detector using the best practice script on CNNDet
-bash train.sh --gpu 2 --dataset progan
+bash train.sh --gpu 2 --dataset progan --ckpt /content/drive/MyDrive/Co-Spy/ckpt
 ```
-The trained models will be saved to `ckpt/<train_dataset>/fusion`.
+The trained models will be saved to `<ckpt>/<train_dataset>/fusion`. Omit `--ckpt` to use the local `ckpt` directory.
 
 You can also customize the training parameters for the training of each branch and the calibration step:
 ```bash
